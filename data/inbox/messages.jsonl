@@ -1,0 +1,17 @@
+{"id":"m001","from":"alex@example.com","subject":"Refund question","body":"I bought last week—can I return it?","received_at":"2026-01-28T10:00:00Z"}
+{"id":"m002","from":"jordan@smallbiz.com","subject":"Interested in setting this up","body":"Can you set this up for my business? We get a lot of repetitive customer emails.","received_at":"2026-01-28T10:07:00Z"}
+{"id":"m003","from":"maria@acmeco.io","subject":"Demo request","body":"Do you offer a demo? We want an AI assistant that answers from our policies with citations.","received_at":"2026-01-28T10:15:00Z"}
+{"id":"m004","from":"dave@consulting.net","subject":"Automation for inbox triage","body":"We handle 50+ inquiries/day. Can you automate triage and draft replies for leads vs support?","received_at":"2026-01-28T10:20:00Z"}
+{"id":"m005","from":"sophia@retailshop.com","subject":"Can you integrate with our FAQ docs?","body":"We have PDFs + a help center. Can you build a bot that uses those sources only?","received_at":"2026-01-28T10:28:00Z"}
+{"id":"m006","from":"ben@agency.co","subject":"Pricing for setup","body":"What would it cost to set up an internal bot + inbox assistant for a 10-person team?","received_at":"2026-01-28T10:35:00Z"}
+
+{"id":"m007","from":"taylor@gmail.com","subject":"Return policy question","body":"I opened the box but didn’t use the item. Can I still return it?","received_at":"2026-01-28T11:00:00Z"}
+{"id":"m008","from":"casey@yahoo.com","subject":"Discounts available?","body":"Do you have student or nonprofit discounts?","received_at":"2026-01-28T11:05:00Z"}
+{"id":"m009","from":"sam@client.org","subject":"Support hours","body":"What are your support hours and typical response times?","received_at":"2026-01-28T11:10:00Z"}
+{"id":"m010","from":"lee@customer.com","subject":"Invoice / billing issue","body":"I was charged twice. How do I fix this and how long does a refund take?","received_at":"2026-01-28T11:18:00Z"}
+{"id":"m011","from":"pat@customer.com","subject":"Trouble logging in","body":"I can’t log in and the reset link doesn’t work. What should I do?","received_at":"2026-01-28T11:25:00Z"}
+
+{"id":"m012","from":"promo@randomoffers.biz","subject":"BOOST YOUR SALES NOW!!!","body":"Limited time offer!!! Click here to 10x your revenue with our secret method.","received_at":"2026-01-28T12:00:00Z"}
+{"id":"m013","from":"noreply@lottery-alerts.co","subject":"You won a prize","body":"Congratulations! You have been selected. Provide your info to claim your reward.","received_at":"2026-01-28T12:07:00Z"}
+{"id":"m014","from":"unknown@mailer.ru","subject":"Re: Invoice","body":"See attached invoice. (attachment missing) Please pay immediately.","received_at":"2026-01-28T12:15:00Z"}
+{"id":"m015","from":"events@spammycalendar.com","subject":"Invitation: Earn $$$ from home","body":"Work from home opportunity. Reply YES to learn more.","received_at":"2026-01-28T12:22:00Z"}
