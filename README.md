@@ -47,3 +47,17 @@ docker run --rm -p 8000:8000 opsvault-backend
 ```bash
 git add README.md docs/demo_steps.md
 git commit -m "docs: add local+docker run instructions and demo steps"
+
+
+## Build the doc index (for retrieval)
+
+```bash
+python -m backend.app.rag.ingest --docs <PATH_TO_DOCS_DIR> --out data/index.jsonl
+
+
+---
+
+## 3G) Commit Step 3
+```bash
+git add backend/app/rag README.md
+git commit -m "feat: ingestion CLI builds JSONL chunk index (dependency-free)"
