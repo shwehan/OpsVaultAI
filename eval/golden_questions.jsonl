@@ -1,0 +1,5 @@
+{"q":"What is the return policy?","expected_sources":["return_policy.md"]}
+{"q":"What are your support hours / response times?","expected_sources":["support_sla.md"]}
+{"q":"Do you offer discounts or enterprise pricing?","expected_sources":["pricing_faq.md"]}
+{"q":"How do refunds work?","expected_sources":["pricing_faq.md","return_policy.md"]}
+{"q":"What is the escalation process?","expected_sources":["support_sla.md"]}
