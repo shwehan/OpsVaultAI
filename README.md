@@ -22,3 +22,27 @@ flowchart LR
   RAG --> VDB[(Vector Store)]
   RAG --> DOCS[(Docs Storage)]
   API --> LOGS[Logs/Tracing]
+
+## Run the API (local)
+
+```bash
+pip install -r backend/requirements.txt
+uvicorn backend.app.main:app --reload --port 8000
+
+
+Now update `docs/demo_steps.md` with the **exact working commands** (no placeholders). For example:
+
+```md
+# Demo Steps (Day 1)
+
+## Run (Docker)
+```bash
+docker build -t opsvault-backend -f backend/Dockerfile backend
+docker run --rm -p 8000:8000 opsvault-backend
+
+---
+
+### 2D) Commit
+```bash
+git add README.md docs/demo_steps.md
+git commit -m "docs: add local+docker run instructions and demo steps"
