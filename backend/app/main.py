@@ -1,10 +1,26 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import time
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from backend.app.rag.retrieve import get_index
+
 
 app = FastAPI(title="OpsVault AI")
 
 class AskRequest(BaseModel):
-    question: str
+   question: str = Field(..., min_length=1)
+   k: int = Field(5, ge=1, le=10)
+    
+class Citation(BaseModel):
+    source_id: str
+    snippet: str
+    score: float
+
+class AskResponse(BaseModel):
+    answer: str
+    citations: List[Citation]
+    latency_ms: int
     
 @app.get("/")
 def root():
@@ -18,13 +34,32 @@ def root():
 def health():
     return {"status": "ok"}
 
-@app.post("/ask")
+@app.post("/ask", response_model=AskResponse)
 def ask(req: AskRequest):
-    # Week 0: stub
-    return {
-        "answer": "Stub answer (Week 0).",
-        "citations": []
-    }
+    t0 = time.time()
+
+    index = get_index("data/index.jsonl")
+    results = index.retrieve(req.question, k=req.k)
+
+    citations = [
+        Citation(source_id=r.source_id, snippet=r.snippet, score=r.score)
+        for r in results
+        if r.source_id
+    ]
+
+    # Minimal "answer" for Day 1: retrieval-grounded summary placeholder.
+    if citations:
+        answer = (
+            "I found relevant policy/KB excerpts. "
+            "See citations for the most relevant sources."
+        )
+    else:
+        answer = "I couldn't find relevant sources in the current index."
+
+    latency_ms = int((time.time() - t0) * 1000)
+
+    return AskResponse(answer=answer, citations=citations, latency_ms=latency_ms)
+
 
 @app.post("/triage")
 def triage(payload: dict):
@@ -35,3 +70,4 @@ def triage(payload: dict):
         "draft_reply": "Stub reply (Week 0).",
         "used_sources": []
     }
+
