@@ -21,7 +21,7 @@ class AskResponse(BaseModel):
     answer: str
     citations: List[Citation]
     latency_ms: int
-    
+
 @app.get("/")
 def root():
     return {
@@ -47,12 +47,19 @@ def ask(req: AskRequest):
         if r.source_id
     ]
 
-    # Minimal "answer" for Day 1: retrieval-grounded summary placeholder.
+    # # Minimal "answer" for Day 1: retrieval-grounded summary placeholder.
+    # if citations:
+    #     answer = (
+    #         "I found relevant policy/KB excerpts. "
+    #         "See citations for the most relevant sources."
+    #     )
+    # else:
+    #     answer = "I couldn't find relevant sources in the current index."
+    # Minimal grounded answer (extractive): show top excerpts as the answer.
     if citations:
-        answer = (
-            "I found relevant policy/KB excerpts. "
-            "See citations for the most relevant sources."
-        )
+        top = citations[:2]
+        lines = [f"- [{c.source_id}] {c.snippet}" for c in top]
+        answer = "Most relevant KB excerpts:\n" + "\n".join(lines)
     else:
         answer = "I couldn't find relevant sources in the current index."
 

@@ -40,8 +40,16 @@ class Index:
 
             scored.append(RetrievalResult(source_id=source_id, snippet=snippet, score=score))
 
+        # scored.sort(key=lambda x: x.score, reverse=True)
+        # return scored[: max(1, k)]
         scored.sort(key=lambda x: x.score, reverse=True)
-        return scored[: max(1, k)]
+        top = scored[: max(1, k)]
+
+        # If we found at least one meaningful match, drop pure-zero noise.
+        if any(r.score > 0.0 for r in top):
+            top = [r for r in top if r.score > 0.0]
+
+        return top
 
 
 _index_cache: Dict[str, Tuple[float, Index]] = {}
