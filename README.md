@@ -61,3 +61,9 @@ python -m backend.app.rag.ingest --docs <PATH_TO_DOCS_DIR> --out data/index.json
 ```bash
 git add backend/app/rag README.md
 git commit -m "feat: ingestion CLI builds JSONL chunk index (dependency-free)"
+
+## Quick Demo (2 minutes)
+
+### 1) Build the doc index
+```bash
+python -m backend.app.rag.ingest --docs data/kb --out data/index.jsonl
