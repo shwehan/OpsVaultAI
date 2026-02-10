@@ -3,11 +3,16 @@ from pydantic import BaseModel
 import time
 from typing import List, Optional
 from pydantic import BaseModel, Field
+
 from backend.app.rag.retrieve import get_index
 from backend.app.triage import triage_message
 
+from backend.app.observability import request_id_and_timing_middleware
 
 app = FastAPI(title="OpsVault AI")
+
+app.middleware("http")(request_id_and_timing_middleware)
+
 
 class AskRequest(BaseModel):
    question: str = Field(..., min_length=1)
