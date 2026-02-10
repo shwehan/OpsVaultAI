@@ -4,6 +4,7 @@ import time
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from backend.app.rag.retrieve import get_index
+from backend.app.triage import triage_message
 
 
 app = FastAPI(title="OpsVault AI")
@@ -68,13 +69,36 @@ def ask(req: AskRequest):
     return AskResponse(answer=answer, citations=citations, latency_ms=latency_ms)
 
 
-@app.post("/triage")
-def triage(payload: dict):
-    # Week 0: stub
-    return {
-        "label": "support",
-        "confidence": 0.5,
-        "draft_reply": "Stub reply (Week 0).",
-        "used_sources": []
-    }
+# @app.post("/triage")
+# def triage(payload: dict):
+#     # Week 0: stub
+#     return {
+#         "label": "support",
+#         "confidence": 0.5,
+#         "draft_reply": "Stub reply (Week 0).",
+#         "used_sources": []
+#     }
 
+class TriageRequest(BaseModel):
+    message: str 
+
+
+class TriageResponse(BaseModel):
+    category: str 
+    priority: str 
+    risk_score: float
+    rationale: list[str]
+    next_action: str 
+    suggested_reply: str 
+
+@app.post("/triage", response_model=TriageResponse)
+def triage(req: TriageRequest):
+    d = triage_message(req.message)
+    return TriageResponse(
+        category=d.category,
+        priority=d.priority,
+        risk_score=d.risk_score,
+        rationale=d.rationale,
+        next_action=d.next_action,
+        suggested_reply=d.suggested_reply,
+    )
