@@ -1,5 +1,7 @@
 # OpsVaultAI — Interview Talk Track
 
+> Behavioral stories (STAR): `docs/stories.md`
+
 ## 30–60 second version
 I’m building OpsVaultAI, an API-first inbox/ticket assistant that answers policy and knowledge-base questions with citations. Today it supports `POST /ask`: it retrieves the most relevant KB excerpts from an indexed document set and returns top-k citations with a latency metric. I also built a small evaluation harness to measure recall@k and retrieval latency so I can iterate on chunking/retrieval quality with evidence. Next I’ll add grounded generation, triage/risk scoring, and deploy to AWS (ECR → ECS Fargate) with observability.
 
@@ -35,3 +37,4 @@ Support and ops teams spend time searching policy docs and replying to repetitiv
 - Add LLM-based grounded answer generation + guardrails
 - Add triage endpoint with structured outputs (category, priority, risk_score)
 - Deploy to AWS and add observability (CloudWatch/OTel traces)
+
