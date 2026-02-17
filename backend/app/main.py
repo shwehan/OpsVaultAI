@@ -14,19 +14,30 @@ app = FastAPI(title="OpsVault AI")
 app.middleware("http")(request_id_and_timing_middleware)
 
 
+# class AskRequest(BaseModel):
+#    question: str = Field(..., min_length=1)
+#    k: int = Field(5, ge=1, le=10)
+
 class AskRequest(BaseModel):
-   question: str = Field(..., min_length=1)
-   k: int = Field(5, ge=1, le=10)
-    
+    question: str
+    k: int = 3
+    min_score: float = 0.12  # guardrail threshold
+ 
 class Citation(BaseModel):
     source_id: str
     snippet: str
     score: float
 
+# class AskResponse(BaseModel):
+#     answer: str
+#     citations: List[Citation]
+#     latency_ms: int
 class AskResponse(BaseModel):
     answer: str
-    citations: List[Citation]
+    citations: list[Citation]
     latency_ms: int
+    abstained: bool = False
+    abstain_reason: Optional[str] = None
 
 @app.get("/")
 def root():
@@ -53,6 +64,20 @@ def ask(req: AskRequest):
         if r.source_id
     ]
 
+    # add abstain logic in /ask
+    top_score = citations[0].score if citations else 0.0
+
+    abstained = (not citations) or (top_score < req.min_score)
+    abstain_reason = None
+
+    if abstained:
+        abstain_reason = f"low_retrieval_confidence: top_score={top_score:.3f} < min_score={req.min_score:.3f}"
+        answer = "I couldn't find relevant sources in the current knowledge base. Try rephrasing or add more docs."
+    else:
+        # (keep your existing answer behavior—extractive bullets or placeholder)
+        pass
+
+
     # # Minimal "answer" for Day 1: retrieval-grounded summary placeholder.
     # if citations:
     #     answer = (
@@ -71,7 +96,14 @@ def ask(req: AskRequest):
 
     latency_ms = int((time.time() - t0) * 1000)
 
-    return AskResponse(answer=answer, citations=citations, latency_ms=latency_ms)
+    # return AskResponse(answer=answer, citations=citations, latency_ms=latency_ms)
+    return AskResponse(
+    answer=answer,
+    citations=citations,
+    latency_ms=latency_ms,
+    abstained=abstained,
+    abstain_reason=abstain_reason,
+)
 
 
 # @app.post("/triage")

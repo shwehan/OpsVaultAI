@@ -11,6 +11,12 @@ def test_ask_returns_contact(client):
     assert isinstance(data["citations"], list)
     assert isinstance(data["latency_ms"], (int, float))
 
+    # added tests for abstain (deterministic)
+    assert "abstained" in data
+    assert "abstain_reason" in data
+    assert isinstance(data["abstained"], bool)
+
+
     # citations should have the fields we care about
     if data["citations"]:
         c0 = data["citations"][0]
