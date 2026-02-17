@@ -55,6 +55,12 @@ def main():
     golden = load_golden(golden_path)
 
     ks = [1, 3, 5]
+
+    MIN_SCORE = 0.12
+    abstained_flags: List[bool] = []
+    abstain_correct: List[bool] = []
+
+
     recalls = {k: [] for k in ks}
     latencies_ms: List[float] = []
 
@@ -63,6 +69,16 @@ def main():
         expected = row.get("expected_sources", [])
         t0 = time.time()
         results = idx.retrieve(q, k=max(ks))
+        
+        top_score = results[0].score if results else 0.0
+        abstained = top_score < MIN_SCORE
+        abstained_flags.append(abstained)
+
+        should_abstain = (len(expected) == 0)
+        abstain_correct.append(abstained == should_abstain)
+
+
+
         ms = (time.time() - t0) * 1000.0
         latencies_ms.append(ms)
 
@@ -76,9 +92,19 @@ def main():
         print("Top sources:", found_sources[:5])
         print(f"Latency: {ms:.1f} ms")
 
+        print(f"Top score: {top_score:.3f} | Abstained: {abstained}")
+
+        print(f"Should abstain: {should_abstain}")
+
     print("\n=== Summary ===")
     for k in ks:
         print(f"Recall@{k}: {sum(recalls[k]) / len(recalls[k]):.2f}")
+
+    abstain_rate = sum(1 for a in abstained_flags if a) / len(abstained_flags)
+    print(f"Abstain rate: {abstain_rate:.2f} (MIN_SCORE={MIN_SCORE:.2f})")
+    
+    abstain_acc = sum(abstain_correct) / len(abstain_correct) if abstain_correct else 0.0
+    print(f"Abstain accuracy: {abstain_acc:.2f}")
 
     p50 = statistics.median(latencies_ms)
     p95 = sorted(latencies_ms)[max(0, int(0.95 * len(latencies_ms)) - 1)]

@@ -3,3 +3,4 @@
 {"q":"Do you offer discounts or enterprise pricing?","expected_sources":["pricing_faq.md"]}
 {"q":"How do refunds work?","expected_sources":["pricing_faq.md","return_policy.md"]}
 {"q":"What is the escalation process?","expected_sources":["support_sla.md"]}
+{"q":"What is your shipping policy?","expected_sources":[]}
