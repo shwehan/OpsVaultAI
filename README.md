@@ -8,12 +8,11 @@ OpsVault AI is a small “knowledge + action” assistant:
 Small teams (ops/support/sales) that waste time searching PDFs/FAQs and replying to repetitive emails.
 
 ## Features (Roadmap)
-- Week 0: API scaffold + sample data
-- Week 1: Docker + AWS deploy (ECS Fargate)
-- Week 2: RAG with citations + eval harness
-- Week 3: LangGraph action agent + safe tools
-- Week 4: CI/CD + monitoring + guardrails
-- Week 5: Interview-ready polish + case study
+- 0: API scaffold + sample data
+- 1: Docker + AWS deploy (ECS Fargate)
+- 2: RAG with citations + eval harness
+- 3: LangGraph action agent + safe tools
+- 4: CI/CD + monitoring + guardrails
 
 ## Architecture
 ```mermaid
