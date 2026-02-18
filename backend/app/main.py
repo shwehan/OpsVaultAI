@@ -11,6 +11,17 @@ from backend.app.observability import request_id_and_timing_middleware
 
 app = FastAPI(title="OpsVault AI")
 
+STOPWORDS = {
+    "what", "is", "the", "a", "an", "your", "our", "do", "does", "we", "are",
+    "to", "of", "and", "or", "in", "on", "for", "with", "how"
+}
+GENERIC = {"policy", "process", "help", "support"}
+
+def extract_keywords(q: str) -> list[str]:
+    tokens = [t.strip(".,?!:;()[]{}\"'").lower() for t in (q or "").split()]
+    tokens = [t for t in tokens if len(t) >= 4 and t not in STOPWORDS and t not in GENERIC]
+    return tokens
+
 app.middleware("http")(request_id_and_timing_middleware)
 
 
@@ -64,46 +75,41 @@ def ask(req: AskRequest):
         if r.source_id
     ]
 
-    # add abstain logic in /ask
     top_score = citations[0].score if citations else 0.0
+    low_score = (not citations) or (top_score < req.min_score)
 
-    abstained = (not citations) or (top_score < req.min_score)
+    # Keyword-missing guardrail (prevents generic matches like "policy" from passing)
+    keywords = extract_keywords(req.question)
+    joined = " ".join([c.snippet.lower() for c in citations])
+    missing = [kw for kw in keywords if kw not in joined]
+    missing_keywords = (len(keywords) > 0 and len(missing) == len(keywords))
+
+    abstained = low_score or missing_keywords
     abstain_reason = None
 
     if abstained:
-        abstain_reason = f"low_retrieval_confidence: top_score={top_score:.3f} < min_score={req.min_score:.3f}"
+        if low_score:
+            abstain_reason = (
+                f"low_retrieval_confidence: top_score={top_score:.3f} < min_score={req.min_score:.3f}"
+            )
+        else:
+            abstain_reason = f"missing_query_keywords: {missing}"
+
         answer = "I couldn't find relevant sources in the current knowledge base. Try rephrasing or add more docs."
     else:
-        # (keep your existing answer behavior—extractive bullets or placeholder)
-        pass
-
-
-    # # Minimal "answer" for Day 1: retrieval-grounded summary placeholder.
-    # if citations:
-    #     answer = (
-    #         "I found relevant policy/KB excerpts. "
-    #         "See citations for the most relevant sources."
-    #     )
-    # else:
-    #     answer = "I couldn't find relevant sources in the current index."
-    # Minimal grounded answer (extractive): show top excerpts as the answer.
-    if citations:
         top = citations[:2]
         lines = [f"- [{c.source_id}] {c.snippet}" for c in top]
         answer = "Most relevant KB excerpts:\n" + "\n".join(lines)
-    else:
-        answer = "I couldn't find relevant sources in the current index."
 
     latency_ms = int((time.time() - t0) * 1000)
 
-    # return AskResponse(answer=answer, citations=citations, latency_ms=latency_ms)
     return AskResponse(
-    answer=answer,
-    citations=citations,
-    latency_ms=latency_ms,
-    abstained=abstained,
-    abstain_reason=abstain_reason,
-)
+        answer=answer,
+        citations=citations,
+        latency_ms=latency_ms,
+        abstained=abstained,
+        abstain_reason=abstain_reason,
+    )
 
 
 # @app.post("/triage")
