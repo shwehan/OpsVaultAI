@@ -16,6 +16,17 @@ from typing import Dict, List
 from backend.app.rag.ingest import build_index
 from backend.app.rag.retrieve import get_index
 
+STOPWORDS = {
+    "what","is","the","a","an","your","our","do","does","we","are",
+    "to","of","and","or","in","on","for","with","how"
+}
+GENERIC = {"policy","process","help","support"}
+
+def extract_keywords(q: str) -> List[str]:
+    tokens = [t.strip(".,?!:;()[]{}\"'").lower() for t in (q or "").split()]
+    tokens = [t for t in tokens if len(t) >= 4 and t not in STOPWORDS and t not in GENERIC]
+    return tokens
+
 
 def load_golden(path: Path) -> List[Dict]:
     rows = []
@@ -64,28 +75,60 @@ def main():
     recalls = {k: [] for k in ks}
     latencies_ms: List[float] = []
 
+    # answerable = len(expected) > 0
+
     for row in golden:
         q = row["q"]
         expected = row.get("expected_sources", [])
         t0 = time.time()
         results = idx.retrieve(q, k=max(ks))
         
-        top_score = results[0].score if results else 0.0
-        abstained = top_score < MIN_SCORE
-        abstained_flags.append(abstained)
+        # top_score = results[0].score if results else 0.0
+        # abstained = top_score < MIN_SCORE
+        # abstained_flags.append(abstained)
 
-        should_abstain = (len(expected) == 0)
-        abstain_correct.append(abstained == should_abstain)
+        # should_abstain = (len(expected) == 0)
+        # abstain_correct.append(abstained == should_abstain)
 
 
 
         ms = (time.time() - t0) * 1000.0
         latencies_ms.append(ms)
 
+        # found_sources = [r.source_id for r in results]
+
+        # # for k in ks:
+        # #     recalls[k].append(recall_at_k(found_sources[:k], expected))
+        # if answerable:
+        #     for k in ks:
+        #         topk = [r.source_id for r in results[:k]]
+        #         recalls[k].append(any(src in topk for src in expected))
+            
         found_sources = [r.source_id for r in results]
 
-        for k in ks:
-            recalls[k].append(recall_at_k(found_sources[:k], expected))
+        # score-based abstain
+        top_score = results[0].score if results else 0.0
+        low_score = top_score < MIN_SCORE
+
+        # keyword-missing abstain (matches API guardrail)
+        keywords = extract_keywords(q)
+        joined = " ".join([getattr(r, "snippet", "") for r in results]).lower()
+        missing = [kw for kw in keywords if kw not in joined]
+        missing_keywords = (len(keywords) > 0 and len(missing) == len(keywords))
+
+        abstained = low_score or missing_keywords
+        abstained_flags.append(abstained)
+
+        expected = row.get("expected_sources", [])
+        answerable = len(expected) > 0
+        should_abstain = not answerable
+        abstain_correct.append(abstained == should_abstain)
+
+        if answerable:
+            for k in ks:
+                topk = [r.source_id for r in results[:k]]
+                recalls[k].append(any(src in topk for src in expected))
+
 
         print(f"\nQ: {q}")
         print(f"Expected: {expected}")
@@ -96,15 +139,25 @@ def main():
 
         print(f"Should abstain: {should_abstain}")
 
+    # print("\n=== Summary ===")
+    # for k in ks:
+    #     print(f"Recall@{k}: {sum(recalls[k]) / len(recalls[k]):.2f}")
+
+    # abstain_rate = sum(1 for a in abstained_flags if a) / len(abstained_flags)
+    # print(f"Abstain rate: {abstain_rate:.2f} (MIN_SCORE={MIN_SCORE:.2f})")
+    
+    # abstain_acc = sum(abstain_correct) / len(abstain_correct) if abstain_correct else 0.0
+    # print(f"Abstain accuracy: {abstain_acc:.2f}")
     print("\n=== Summary ===")
     for k in ks:
-        print(f"Recall@{k}: {sum(recalls[k]) / len(recalls[k]):.2f}")
+        denom = len(recalls[k])
+        print(f"Recall@{k} (answerable only): {(sum(recalls[k]) / denom):.2f}" if denom else f"Recall@{k}: n/a")
 
     abstain_rate = sum(1 for a in abstained_flags if a) / len(abstained_flags)
-    print(f"Abstain rate: {abstain_rate:.2f} (MIN_SCORE={MIN_SCORE:.2f})")
-    
+    print(f"Abstain rate (all): {abstain_rate:.2f} (MIN_SCORE={MIN_SCORE:.2f})")
+
     abstain_acc = sum(abstain_correct) / len(abstain_correct) if abstain_correct else 0.0
-    print(f"Abstain accuracy: {abstain_acc:.2f}")
+    print(f"Abstain accuracy (all): {abstain_acc:.2f}")
 
     p50 = statistics.median(latencies_ms)
     p95 = sorted(latencies_ms)[max(0, int(0.95 * len(latencies_ms)) - 1)]
